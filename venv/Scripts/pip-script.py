@@ -1,4 +1,4 @@
-#!"E:\Materiale studiu\FII semestrul 5\AI\Laboratoare\Lab3_dame\venv\Scripts\python.exe"
+#!"E:\Materiale studiu\FII semestrul 5\AI\Laboratoare\Checkers\venv\Scripts\python.exe"
 # EASY-INSTALL-ENTRY-SCRIPT: 'pip==19.0.3','console_scripts','pip'
 __requires__ = 'pip==19.0.3'
 import re
