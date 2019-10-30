@@ -19,6 +19,7 @@ HIGHLIGHT_COLOR  = ( 60,  60, 100)
 player1_image = pygame.image.load("emoji1.png")
 player2_image = pygame.image.load("emoji2.png")
 clean_box = pygame.image.load("clean_box.png")
+valid_box = pygame.image.load("valid_box.png")
 selected_player1_image = pygame.image.load("selected_emoji1.png")
 selected_player2_image = pygame.image.load("selected_emoji2.png")
 
@@ -38,7 +39,7 @@ class ProblemState:
         self.square = np.zeros((8, 8))
         self.square[0] = np.ones(8).dot(-1)
         self.square[7] = np.ones(8)
-        self.moves_next = 1
+        self.moves_next = -1
 
     def __str__(self):
         res = ""
@@ -79,13 +80,38 @@ def update_board(state):
                 DISPLAYSURF.blit(selected_player1_image, (coordx, coordy))
             elif state.square[i][j] == -2:
                 DISPLAYSURF.blit(selected_player2_image, (coordx, coordy))
+            elif state.square[i][j] == 3:
+                DISPLAYSURF.blit(valid_box, (coordx, coordy))
 
 
+def print_final_message(win):
+    pygame.time.wait(1_000)
+    DISPLAYSURF.fill(BACKGROUND_COLOR)
+    font = pygame.font.SysFont("comicsansms", 72)
+    str_message = "Equality"
+    if win == 1:
+        str_message = "You won"
+    elif win == -1:
+        str_message = "I won"
+    text = font.render(str_message, True, (0, 128, 0))
+    DISPLAYSURF.blit(text, (350 - text.get_width() // 2, 250 - text.get_height() // 2))
+    pygame.display.flip()
+    pygame.time.wait(1_000)
+
+
+# daca selectam o piesa, o marcam atat pe ea, cat si tranzitiile valide
+# daca o deselectam, vom demarca tot ce am marcat pentru ea
 def select_or_unselect_box(state, select, coordx, coordy):
     if select == 1:
         state.square[coordx][coordy] = 2 * np.sign(state.square[coordx][coordy])
     elif select == -1:
         state.square[coordx][coordy] = 1 * np.sign(state.square[coordx][coordy])
+
+    for direction in directions:
+        newx = coordx + direction[0]
+        newy = coordy + direction[1]
+        if is_valid_transition(state, coordx, coordy, newx, newy):
+            state.square[newx][newy] = 3 if select == 1 else 0
     return state
 
 
@@ -112,7 +138,7 @@ def process_the_event(state, e):
         print("Se vrea implementarea chestiilor de pe margine, a butoanelor")
 
     if state.square[position[0]][position[1]] == 1:  # e alegerea unei noi piese personale
-        if coord_from:
+        if coord_from:  # se va deselecta piesa veche; "o vom suprascrie"
             state = select_or_unselect_box(state, -1, *coord_from)
         coord_from = position
         state = select_or_unselect_box(state, 1, *coord_from)
@@ -130,9 +156,9 @@ def process_the_event(state, e):
 # -1 jos || +1 sus || cineva e blocat
 def is_final_state(state):
     if np.max(state.square[0]) == np.min(state.square[0]) == 1:
-        return "1 win"
+        return 1
     if np.max(state.square[7]) == np.min(state.square[7]) == -1:
-        return "-1 win"
+        return -1
     # de implementat cazul in care e blocat
     return False
 
@@ -141,7 +167,7 @@ def is_valid_transition(state, x, y, new_x, new_y):
     #   validam pozitiile si existenta pieselor curente
     if (new_x not in range(8)) or (new_y not in range(8)):
         return False
-    if state.square[new_x][new_y] != 0:
+    if state.square[new_x][new_y] != 0 and state.square[new_x][new_y] != 3:
         return False
     if (x not in range(8)) or (y not in range(8)):
         return False
@@ -208,20 +234,24 @@ def computer_moves_based_on_one_level_results(state):
 
 def play(state):
     pygame.init()
-    pygame.display.set_caption('DAME-VARIANTA')
+    pygame.display.set_caption('DAME-VARIANT')
     update_board(state)
     while True:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == MOUSEBUTTONUP:
-                state = process_the_event(state, event.pos)
-                print(state)
-        update_board(state)
-        pygame.display.update()
+        if is_final_state(state):
+            print_final_message(is_final_state(state))
+            break
+        if state.moves_next == 1:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == MOUSEBUTTONUP:
+                    state = process_the_event(state, event.pos)
+                    print(state)
+            update_board(state)
+            pygame.display.update()
 
-        if state.moves_next == -1:  # CPU turn
+        elif state.moves_next == -1:  # CPU turn
             # state = computer_moves_random(state)
             state = computer_moves_based_on_one_level_results(state)
             update_board(state)

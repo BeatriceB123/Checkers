@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="70a16149-598d-4a62-92af-fa543c4a6b28" name="Default Changelist" comment="calculator - om  &#10;efect piesa selectata">
+    <list default="true" id="70a16149-598d-4a62-92af-fa543c4a6b28" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clean_box.png" beforeDir="false" afterPath="$PROJECT_DIR$/clean_box.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dame.py" beforeDir="false" afterPath="$PROJECT_DIR$/dame.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emoji1.png" beforeDir="false" afterPath="$PROJECT_DIR$/emoji1.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emoji2.png" beforeDir="false" afterPath="$PROJECT_DIR$/emoji2.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/selected_emoji1.png" beforeDir="false" afterPath="$PROJECT_DIR$/selected_emoji1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/selected_clean_box.png" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -95,7 +92,14 @@
       <option name="project" value="LOCAL" />
       <updated>1572382555375</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="evaluare stari, &#10;generare mutare pentru calculator dupa evaluarea pe un singur nivel">
+      <created>1572454491331</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1572454491331</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -123,6 +127,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="calculator - om  &#10;efect piesa selectata" />
-    <option name="LAST_COMMIT_MESSAGE" value="calculator - om  &#10;efect piesa selectata" />
+    <MESSAGE value="evaluare stari, &#10;generare mutare pentru calculator dupa evaluarea pe un singur nivel" />
+    <MESSAGE value="show_valid_transitions, end_of_game" />
+    <option name="LAST_COMMIT_MESSAGE" value="show_valid_transitions, end_of_game" />
   </component>
 </project>
