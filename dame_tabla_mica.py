@@ -3,10 +3,10 @@ import numpy as np
 import pygame, sys
 from pygame.locals import *
 
-WINDOWWIDTH =  720  # size of window's width in pixels
-WINDOWHEIGHT = 720  # size of windows' height in pixels
 BOXSIZE = 90        # size of box height & width in pixels
-NRB = 8             # number of boxes
+NRB = 4             # number of boxes
+WINDOWWIDTH = NRB * BOXSIZE  # size of window's width in pixels
+WINDOWHEIGHT = NRB * BOXSIZE  # size of windows' height in pixels
 LINE_WIDTH = 4      # For odd width values, the thickness of each line grows with the original line being in the cent
 DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 oo = 9999
@@ -27,19 +27,22 @@ selected_player2_image = pygame.image.load("selected_emoji2.png")
 directions = [(-1, -1), (-1, 0), (-1, +1), (0, -1), (0, +1), (+1, -1), (+1, 0), (+1, +1)]
 
 # each position from the matrix has a correspondent in the drawn square, measured in pixels
-dict_image_coordinates = dict([((i, j), (j * BOXSIZE, i * BOXSIZE)) for i in range(0, 8) for j in range(0, 8)])
-list_for_indices = [(i, j) for i in range(8) for j in range(8)]
+list_for_indices = [(i, j) for i in range(NRB) for j in range(NRB)]
+dict_image_coordinates = dict([((i, j), (j * BOXSIZE, i * BOXSIZE)) for i, j in list_for_indices])
+
 
 # if we have a selected piece
 coord_from = None
+
+my_file = open("results.txt", "w")
 
 
 class ProblemState:
     # -1 sus && +1 jos, iar -1 va fi calculatorul.
     def __init__(self):
-        self.square = np.zeros((8, 8))
-        self.square[0] = np.ones(8).dot(-1)
-        self.square[7] = np.ones(8)
+        self.square = np.zeros((NRB, NRB))
+        self.square[0] = np.ones(NRB).dot(-1)
+        self.square[NRB-1] = np.ones(NRB)
         self.moves_next = 1
 
     def __str__(self):
@@ -66,23 +69,22 @@ def clean_board():
 
 def update_board(state):
     clean_board()
-    for i in range(8):
-        for j in range(8):
-            coordx, coordy = dict_image_coordinates[(i, j)]
-            coordx += LINE_WIDTH/2+1
-            coordy += LINE_WIDTH/2+1
-            if state.square[i][j] == 0:
-                DISPLAYSURF.blit(clean_box, (coordx, coordy))
-            elif state.square[i][j] == 1:
-                DISPLAYSURF.blit(player1_image, (coordx, coordy))
-            elif state.square[i][j] == -1:
-                DISPLAYSURF.blit(player2_image, (coordx, coordy))
-            elif state.square[i][j] == 2:
-                DISPLAYSURF.blit(selected_player1_image, (coordx, coordy))
-            elif state.square[i][j] == -2:
-                DISPLAYSURF.blit(selected_player2_image, (coordx, coordy))
-            elif state.square[i][j] == 3:
-                DISPLAYSURF.blit(valid_box, (coordx, coordy))
+    for i, j in list_for_indices:
+        coordx, coordy = dict_image_coordinates[(i, j)]
+        coordx += LINE_WIDTH/2+1
+        coordy += LINE_WIDTH/2+1
+        if state.square[i][j] == 0:
+            DISPLAYSURF.blit(clean_box, (coordx, coordy))
+        elif state.square[i][j] == 1:
+            DISPLAYSURF.blit(player1_image, (coordx, coordy))
+        elif state.square[i][j] == -1:
+            DISPLAYSURF.blit(player2_image, (coordx, coordy))
+        elif state.square[i][j] == 2:
+            DISPLAYSURF.blit(selected_player1_image, (coordx, coordy))
+        elif state.square[i][j] == -2:
+            DISPLAYSURF.blit(selected_player2_image, (coordx, coordy))
+        elif state.square[i][j] == 3:
+            DISPLAYSURF.blit(valid_box, (coordx, coordy))
 
 
 def print_final_message(win):
@@ -156,18 +158,18 @@ def process_the_event(state, e):
 def is_final_state(state):
     if np.max(state.square[0]) == np.min(state.square[0]) == 1:
         return 1
-    if np.max(state.square[7]) == np.min(state.square[7]) == -1:
+    if np.max(state.square[NRB-1]) == np.min(state.square[NRB-1]) == -1:
         return -1
     return False
 
 
 def is_valid_transition(state, x, y, new_x, new_y):
     #   validam pozitiile si existenta pieselor curente
-    if (new_x not in range(8)) or (new_y not in range(8)):
+    if (new_x not in range(NRB)) or (new_y not in range(NRB)):
         return False
     if state.square[new_x][new_y] != 0 and state.square[new_x][new_y] != 3:
         return False
-    if (x not in range(8)) or (y not in range(8)):
+    if (x not in range(NRB)) or (y not in range(NRB)):
         return False
     if state.square[x][y] == 0:
         return False
@@ -191,35 +193,25 @@ def make_transition(state, x, y, new_x, new_y):
 def get_player_score(state):
     score_player = 0
     for i, j in list_for_indices:
-        if state.square[i][j] in [1, 2]:
-            score_player += 7 - i
-            if i == 0:  # pozitia finala va avea mai multe puncte
-                score_player += 5
+        if state.square[i][j] in [1, 2] and i != 0:
+            score_player += NRB - 1 - i
+        elif state.square[i][j] in [1, 2] and i == 0:  # pozitia finala va avea mai multe puncte
+            score_player += NRB + 10
     return score_player
 
 
-def get_AI_score(state):
-    score_AI = 0
+def get_ai_score(state):
+    score_ai = 0
     for i, j in list_for_indices:
-        if state.square[i][j] in [-1, -2]:  # CPU
-            score_AI += i
-            if i == 7:  # pozitia finala va avea mai multe puncte
-                score_AI += 5
-    return score_AI
+        if state.square[i][j] in [-1, -2] and i != NRB - 1:  # CPU
+            score_ai += i
+        elif state.square[i][j] in [-1, -2] and i == NRB - 1:  # pozitia finala va avea mai multe puncte
+            score_ai += NRB + 10
+    return score_ai
 
 
 def get_state_score_naive(state):
-    return get_AI_score(state) - get_player_score(state)
-
-
-def computer_moves_random(state):
-    while state.moves_next == -1:
-        computer_coord_from = np.random.choice(range(0, 8), 2, p=np.ones(8).dot(0.125))
-        computer_coord_to = np.random.choice(range(0, 8), 2, p=np.ones(8).dot(0.125))
-        if is_valid_transition(state, computer_coord_from[0], computer_coord_from[1], *computer_coord_to):
-            if state.square[computer_coord_from[0]][computer_coord_from[1]] == -1:
-                state = make_transition(state, computer_coord_from[0], computer_coord_from[1], *computer_coord_to)
-    return state
+    return get_ai_score(state) - get_player_score(state)
 
 
 def get_possible_actions_from(state):
@@ -252,6 +244,7 @@ def computer_moves_based_on_one_level_results(state):
 
 
 # returneaza actiunea cea mai buna, si valoarea care se obtine cu ea
+'''
 def minmax(state, is_maximized_level, current_depth, maxim_depth):
     if current_depth > maxim_depth or is_final_state(state):
         return (None, None, None, None), get_state_score_naive(state)
@@ -266,25 +259,45 @@ def minmax(state, is_maximized_level, current_depth, maxim_depth):
         best_result = -oo
         best_results = []
         for aux, v in all_val:
-            if v > best_result:
-                best_results = [(aux, v)]
-                best_result = v
-            elif v == best_result:
-                best_results.append([aux, v])
+            if state.square[aux[0]][aux[1]] == -1:
+                if v > best_result:
+                    best_results = [(aux, v)]
+                    best_result = v
+                elif v == best_result:
+                    best_results.append([aux, v])
     else:
         best_result = oo
         best_results = []
         for aux, v in all_val:
-            if v < best_result:
-                best_results = [(aux, v)]
-                best_result = v
-            elif v == best_result:
-                best_results.append([aux, v])
+            if state.square[aux[0]][aux[1]] == +1:
+                if v < best_result:
+                    best_results = [(aux, v)]
+                    best_result = v
+                elif v == best_result:
+                    best_results.append([aux, v])
     if current_depth == 0:
         print("Valorile din toate pozitiile: ", all_val)
         print("Ce am ales: ", best_results)
         print("Iar valoare tablei acum este: ", best_results[0][1])
     return best_results[0][0]
+'''
+
+
+def minmax(state, is_maximized_level, current_depth, maxim_depth):
+    if current_depth > maxim_depth or is_final_state(state):
+        return get_state_score_naive(state)
+    if is_maximized_level == 1:
+        best_result = -oo
+        possible_moves = get_possible_actions_from(state)
+        for i, j, new_i, new_j in possible_moves:
+            best_result = max(best_result, minmax(make_transition(state, i, j, new_i, new_j), 0, current_depth + 1, maxim_depth))
+        return best_result
+    else:
+        best_result = oo
+        possible_moves = get_possible_actions_from(state)
+        for i, j, new_i, new_j in possible_moves:
+            best_result = min(best_result, minmax(make_transition(state, i, j, new_i, new_j), 1, current_depth + 1, maxim_depth))
+        return best_result
 
 
 def play(state):
@@ -309,7 +322,7 @@ def play(state):
         elif state.moves_next == -1:  # CPU turn
             # state = computer_moves_random(state)
             # state = computer_moves_based_on_one_level_results(state)
-            aux = minmax(state, 1, 0, 3)
+            aux = minmax(state, 1, 0, 2)
             state = make_transition(state, *aux)
             print("Scor dupa mutarea CPU: ", get_state_score_naive(state))
             update_board(state)
